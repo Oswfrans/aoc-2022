@@ -1,63 +1,42 @@
 module Main where
 
-data Janken = Rock | Paper | Scissors deriving (Enum, Eq, Show)
-
-instance Ord Janken where
-    compare x        y        | x == y = EQ
-    compare Rock     Paper             = LT
-    compare Paper    Scissors          = LT
-    compare Scissors Rock              = LT
-    compare _        _                 = GT
+import Data.List (intersect)
+import Data.Maybe (fromJust)
 
 main :: IO ()
 
 main = do
 
-    ls <- (readFile "input_day2.txt")
-    let processedInput = process ls
-    let answer = sum $ map (uncurry decode) processedInput
+    ls <- (readFile "input_day3.txt")
+    -- we read the lines 
+    -- split each line down the middle in to a tuple or list
+    -- change each letter to a number
+    -- find the common ones
+    -- sum over all the lines
+    
+    let processedInput = map (splitLine) $ lines ls
+
+    --not exactly sure how this works
+    let answer = sum $ map (points . head . foldr1 intersect) processedInput
+
     print answer
-    let answer2 = sum $ map (uncurry decode2) processedInput
+
+    let chunkedInput = (chunksOf 3) $ lines ls
+
+    let answer2 = sum $ map (points . head . foldr1 intersect) chunkedInput
+
     print answer2
 
-decode ::  Janken -> Janken -> Int
-decode x y =
-    let score1 = power y
-        --can we simplify this?
-        score2 = (*3) $ (2-) $ fromEnum $ compare x y
-    in  score1 + score2
 
-decode2 :: Janken -> Janken -> Int
-decode2 x y =
-    let yourpick = picker x y
-        score1 = power yourpick
-        score2 = (*3) $ (2-) $ fromEnum $ compare x yourpick
-    in score1+score2
- 
-picker :: Janken -> Janken -> Janken
-picker x y
-    | y == Rock && x == Rock = Scissors
-    | y == Rock && x == Paper = Rock
-    | y == Rock && x == Scissors = Paper
-    | y == Paper = x
-    | y == Scissors && x == Rock = Paper
-    | y == Scissors && x == Paper = Scissors
-    | y == Scissors && x == Scissors = Rock
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf n [] = []
+chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
-power :: Janken -> Int
-power y
-    | y == Rock = 1
-    | y == Paper = 2
-    | y == Scissors = 3
+splitLine :: [a] -> ([a], [a])
+splitLine xs = splitAt l xs
+    where l = length xs `div` 2
 
+points :: Char -> Int
+points c = fromJust $ lookup c (zip ['a' .. 'z'] [1 ..] ++ zip ['A' .. 'Z'] [27 ..])
 
-process :: String -> [(Janken, Janken)]
-process = (zip <$> map (lparse . head) <*> map (rparse . last)) . lines
-    where
-        lparse 'A' = Rock
-        lparse 'B' = Paper
-        lparse 'C' = Scissors
-        rparse 'X' = Rock
-        rparse 'Y' = Paper
-        rparse 'Z' = Scissors
 
