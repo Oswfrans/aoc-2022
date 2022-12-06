@@ -1,42 +1,58 @@
 module Main where
 
-import Data.List (intersect)
-import Data.Maybe (fromJust)
+import Data.List
+import Data.List.Split (splitOn)
 
 main :: IO ()
 
 main = do
 
-    ls <- (readFile "input_day3.txt")
-    -- we read the lines 
-    -- split each line down the middle in to a tuple or list
-    -- change each letter to a number
-    -- find the common ones
-    -- sum over all the lines
-    
-    let processedInput = map (splitLine) $ lines ls
+    ls <- (readFile "input_day6.txt")
+    -- we read the file
 
-    --not exactly sure how this works
-    let answer = sum $ map (points . head . foldr1 intersect) processedInput
+    print (findStart ls 0 4)
 
-    print answer
+    print (findStart ls 0 14)
 
-    let chunkedInput = (chunksOf 3) $ lines ls
+findStart :: String -> Int -> Int -> Int
+findStart s startIndex length = 
+  -- Get the subsequence of the input string starting at the startIndex position
+  -- and with the specified length
+  let subsequence = subseq s startIndex length
+  in 
+  -- If all characters in the subsequence are different, return the index of the end of the subsequence
+  if allDifferent subsequence
+  then 
+    startIndex + length
+  -- Otherwise, try again with the next character in the input string
+  else
+    findStart s (startIndex + 1) length
 
-    let answer2 = sum $ map (points . head . foldr1 intersect) chunkedInput
+-- A helper function to get a subsequence of a string
+subseq :: String -> Int -> Int -> String
+subseq s startIndex length = take length $ drop startIndex s
 
-    print answer2
+-- A helper function to check if all characters in a string are different
+allDifferent :: String -> Bool
+allDifferent str = length str == length (nub str)
 
 
-chunksOf :: Int -> [a] -> [[a]]
-chunksOf n [] = []
-chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
-splitLine :: [a] -> ([a], [a])
-splitLine xs = splitAt l xs
-    where l = length xs `div` 2
+-- -- Define a function to compute the result
+-- firstFourDifferent :: String -> Int
+-- firstFourDifferent input =
+--   -- Find the first subsequence of length 4 where all characters are different
+--   let subseqs = tails input
+--       firstFour = head $ filter allDifferent $ map (take 4) subseqs
+--   in
+--   -- Return the length of the input up to the end of the first such subsequence
+--   length input - length firstFour
 
-points :: Char -> Int
-points c = fromJust $ lookup c (zip ['a' .. 'z'] [1 ..] ++ zip ['A' .. 'Z'] [27 ..])
+-- -- Define a helper function to check if all characters in a string are different
+-- allDifferent :: String -> Bool
+-- allDifferent str =
+--   length str == length (nub str)
+--     -- we have a string which we traverse and we count the number of characters 
+--     -- until we have the last four chars which are different
 
 
